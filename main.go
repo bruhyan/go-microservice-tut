@@ -12,13 +12,16 @@ import (
 
 func main() {
 	l := log.New(os.Stdout, "product-api", log.LstdFlags)
+
 	helloHandler := handlers.NewHello(l)
 	goodbyeHandler := handlers.NewGoodBye(l)
+	productHandler := handlers.NewProducts(l)
 
 	// Create a ServeMux
 	sm := http.NewServeMux()
-	sm.Handle("/", helloHandler)
+	sm.Handle("/hello", helloHandler)
 	sm.Handle("/goodbye", goodbyeHandler)
+	sm.Handle("/", productHandler)
 
 	// Spins up a http server, first arg is the port, second one is the http handler (default handler, see DefaultServerMux)
 	// ServeMux is like a "controller" that maps a pattern to a handler
