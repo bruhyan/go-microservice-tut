@@ -8,20 +8,28 @@ import (
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
 func main() {
 	l := log.New(os.Stdout, "product-api", log.LstdFlags)
 
-	helloHandler := handlers.NewHello(l)
-	goodbyeHandler := handlers.NewGoodBye(l)
 	productHandler := handlers.NewProducts(l)
 
-	// Create a ServeMux
-	sm := http.NewServeMux()
-	sm.Handle("/hello", helloHandler)
-	sm.Handle("/goodbye", goodbyeHandler)
-	sm.Handle("/", productHandler)
+	// Create a ServeMux i.e. Gorilla Mux
+	sm := mux.NewRouter()
+
+	getRouter := sm.Methods("GET").Subrouter()
+	getRouter.HandleFunc("/", productHandler.GetProducts)
+
+	putRouter := sm.Methods("PUT").Subrouter()
+	putRouter.HandleFunc("/{id:[0-9]+}", productHandler.UpdateProducts)
+	putRouter.Use(productHandler.MiddlewareProductValidation)
+
+	postRouter := sm.Methods("POST").Subrouter()
+	postRouter.HandleFunc("/", productHandler.AddProduct)
+	postRouter.Use(productHandler.MiddlewareProductValidation)
 
 	// Spins up a http server, first arg is the port, second one is the http handler (default handler, see DefaultServerMux)
 	// ServeMux is like a "controller" that maps a pattern to a handler
